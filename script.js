@@ -21,7 +21,7 @@ const data = [
     { date: '2023-02-23', amount: 23000000, purpose: '💰 MIGAのSURE信託基金への拠出', status: 'Allocation' },
     { date: '2023-03-30', amount: 400000000, purpose: '🏗️ 緊急復興支援（フェーズ2）', status: 'Allocation' },
     { date: '2023-03-30', amount: 70000000, purpose: '⚡ 重要エネルギーインフラの復旧支援', status: 'Allocation' },
-    { date: '2023-03-30', amount: 30000000, purpose: '🪖 NATOのCAP信託基金への拠出', status: 'Allocation' },
+    { date: '2023-03-30', amount: 30000000, purpose: '🪖 NATOCAP信託基金への拠出', status: 'Allocation' },
     { date: '2023-04-21', amount: 471000000, purpose: '💰 世銀行URTFへの拠出', status: 'Allocation' },
     { date: '2023-06-20', amount: 5000000, purpose: '🌊 洪水災害対応支援', status: 'Allocation' },
     { date: '2023-06-23', amount: null, purpose: '🌊 洪水災害対応物資支援', status: 'Allocation' },
@@ -96,10 +96,11 @@ function createSlide(entry, exchangeRate) {
     const purposeText = purposeParts.join(' ');
     
     if (entry.amount !== null) {
+        const amountJPY = entry.currency === 'JPY' ? entry.amount : Math.round(entry.amount * exchangeRate);
         const amountSpan = document.createElement('span');
         amountSpan.className = 'slide-amount';
-        const amountJPY = Math.round(entry.amount * exchangeRate);
-        amountSpan.textContent = `${formatCompactJapaneseNumber(amountJPY)}円`;
+        amountSpan.textContent = formatCompactJapaneseNumber(amountJPY) + '円';
+        amountSpan.title = formatLargeJapaneseNumber(amountJPY) + '円';
         contentDiv.appendChild(amountSpan);
     }
     
@@ -134,7 +135,7 @@ function createFullList(exchangeRate) {
         }
 
         const statusEmoji = entry.status === 'Allocation' ? '✅' : '';
-        const statusText = entry.status === 'Allocation' ? '割当済' : 'コミット済';
+        const statusText = entry.status === 'Allocation' ? '割当済' : '確定済';
         const statusClass = entry.status === 'Allocation' ? 'status-allocated' : 'status-committed';
 
         li.innerHTML = `
@@ -203,7 +204,7 @@ async function createCumulativeChart(exchangeRate) {
                         borderWidth: 1
                     },
                     {
-                        label: 'コミット済 (円)',
+                        label: '確定済 (円)',
                         data: [...committedData, totalCommitted],
                         backgroundColor: 'rgba(255, 159, 64, 0.6)',
                         borderColor: 'rgba(255, 159, 64, 1)',
@@ -299,7 +300,7 @@ async function updateDisplay() {
     const amountJapaneseElement = document.getElementById('amountJapanese');
 
     amountElement.textContent = `${formatJapaneseNumber(grandTotalJPY)}円`;
-    amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(allocatedTotalJPY)}円、コミット済: ${formatJapaneseNumber(committedTotalJPY)}円)`;
+    amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(allocatedTotalJPY)}円、確定済: ${formatJapaneseNumber(committedTotalJPY)}円)`;
 
     const sliderContainer = document.getElementById('slider-container');
     const slider = document.getElementById('slider');
@@ -340,12 +341,17 @@ function setupSlider() {
                 slide.classList.add('active');
                 slide.classList.remove('inactive');
             } else {
-                slide.classList.remove('active');
-                slide.classList.add('inactive');
-                setTimeout(() => {
+                if (slide.classList.contains('active')) {
+                    slide.classList.remove('active');
+                    slide.classList.add('inactive');
+                    setTimeout(() => {
+                        slide.style.display = 'none';
+                        slide.classList.remove('inactive');
+                    }, 500);
+                } else {
                     slide.style.display = 'none';
-                    slide.classList.remove('inactive');
-                }, 500);
+                    slide.classList.remove('active', 'inactive');
+                }
             }
         });
     }
@@ -359,6 +365,16 @@ function setupSlider() {
     setInterval(nextSlide, 5000);
 
     showSlide(currentIndex);
+}
+
+function formatLargeJapaneseNumber(num) {
+    const units = ['', '万', '億', '兆'];
+    let unitIndex = 0;
+    while (num >= 10000 && unitIndex < units.length - 1) {
+        num /= 10000;
+        unitIndex++;
+    }
+    return Math.floor(num).toLocaleString() + units[unitIndex];
 }
 
 // Call this function when the DOM is loaded
