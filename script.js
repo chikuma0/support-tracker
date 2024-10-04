@@ -21,7 +21,7 @@ const data = [
     { date: '2023-03-30', amount: 400000000, purpose: '🏗️ 緊急復興支援（フェーズ2）', status: 'Allocation' },
     { date: '2023-03-30', amount: 70000000, purpose: '⚡ 重要エネルギーインフラの復旧支援', status: 'Allocation' },
     { date: '2023-03-30', amount: 30000000, purpose: '🪖 NATOのCAP信託基金への拠出', status: 'Allocation' },
-    { date: '2023-04-21', amount: 471000000, purpose: '💰 世界銀行��URTFへの拠出', status: 'Allocation' },
+    { date: '2023-04-21', amount: 471000000, purpose: '💰 世界銀行URTFへの拠出', status: 'Allocation' },
     { date: '2023-06-20', amount: 5000000, purpose: '🌊 洪水災害対応支援', status: 'Allocation' },
     { date: '2023-06-23', amount: null, purpose: '🌊 洪水災害対応物資支援', status: 'Allocation' },
     { date: '2023-07-20', amount: 1500000000, purpose: '💰 世界銀行融資のADVANCE信託基金による信用補完', status: 'Allocation' },
