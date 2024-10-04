@@ -294,13 +294,16 @@ async function updateDisplay() {
     amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(allocatedTotalJPY)}円、コミット済: ${formatJapaneseNumber(committedTotalJPY)}円)`;
 
     const slider = document.getElementById('slider');
-    slider.innerHTML = ''; // Clear existing slides
-    data.forEach(entry => {
-        const slide = createSlide(entry, exchangeRate);
-        slider.appendChild(slide);
-    });
-
-    setupSlider(); // Call this after creating slides
+    if (slider) {
+        slider.innerHTML = ''; // Clear existing slides
+        data.forEach(entry => {
+            const slide = createSlide(entry, exchangeRate);
+            slider.appendChild(slide);
+        });
+        setupSlider(); // Call this after creating slides
+    } else {
+        console.error('Slider element not found');
+    }
 
     await createCumulativeChart(exchangeRate);
 
@@ -311,7 +314,14 @@ async function updateDisplay() {
 function setupSlider() {
     const slider = document.querySelector('.slider');
     const slides = document.querySelectorAll('.slide');
+    const prevButton = document.querySelector('.prev');
+    const nextButton = document.querySelector('.next');
     let currentIndex = 0;
+
+    if (!slider || slides.length === 0) {
+        console.error('Slider or slides not found');
+        return;
+    }
 
     function showSlide(index) {
         slides.forEach((slide, i) => {
@@ -329,8 +339,17 @@ function setupSlider() {
         showSlide(currentIndex);
     }
 
-    document.querySelector('.prev').addEventListener('click', prevSlide);
-    document.querySelector('.next').addEventListener('click', nextSlide);
+    if (prevButton) {
+        prevButton.addEventListener('click', prevSlide);
+    } else {
+        console.error('Previous button not found');
+    }
+
+    if (nextButton) {
+        nextButton.addEventListener('click', nextSlide);
+    } else {
+        console.error('Next button not found');
+    }
 
     showSlide(currentIndex);
 }
@@ -339,6 +358,5 @@ function setupSlider() {
 document.addEventListener('DOMContentLoaded', function() {
     updateDisplay().catch(error => console.error("Error in updateDisplay:", error));
     setupPopup();
-    setupSlider();
     calculateAndVerifyTotals(data, 140, totalAmount); // Use a default exchange rate
 });
