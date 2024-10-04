@@ -65,8 +65,14 @@ function formatJapaneseDate(dateString) {
 }
 
 async function getExchangeRate() {
-    // For simplicity, we'll use a fixed exchange rate
-    return 110;
+    try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const data = await response.json();
+        return data.rates.JPY;
+    } catch (error) {
+        console.error('Error fetching exchange rate:', error);
+        return 140; // Fallback to an approximate current rate if API fails
+    }
 }
 
 function createSlide(entry, exchangeRate) {
@@ -206,7 +212,12 @@ async function createCumulativeChart(exchangeRate) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    stacked: true
+                    stacked: true,
+                    ticks: {
+                        callback: function(value) {
+                            return formatJapaneseNumber(value) + '円';
+                        }
+                    }
                 },
                 x: {
                     stacked: true
@@ -244,79 +255,63 @@ function calculateAndVerifyTotals(data, exchangeRate, expectedTotalUSD) {
 
 async function updateDisplay() {
     const exchangeRate = await getExchangeRate();
-    console.log("Exchange rate:", exchangeRate);
+    console.log("Current exchange rate:", exchangeRate);
 
-    const expectedAllocatedUSD = 9800000000; // 9.8 billion USD
-    const expectedCommittedUSD = 13360000000; // 13.36 billion USD
-
-    let allocatedTotalUSD = 0;
-    let committedTotalUSD = 0;
+    let totalAllocated = 0;
+    let totalCommitted = 0;
 
     data.forEach(entry => {
         if (entry.amount !== null) {
             const amountUSD = entry.currency === 'JPY' ? entry.amount / exchangeRate : entry.amount;
-            console.log(`${entry.date}: ${entry.status} - ${amountUSD.toFixed(2)} USD`);
             if (entry.status === 'Allocation') {
-                allocatedTotalUSD += amountUSD;
+                totalAllocated += amountUSD;
             } else if (entry.status === 'Commitment') {
-                committedTotalUSD += amountUSD;
+                totalCommitted += amountUSD;
             }
         }
     });
 
-    const allocatedTotalJPY = allocatedTotalUSD * exchangeRate;
-    const committedTotalJPY = committedTotalUSD * exchangeRate;
-
-    console.log("Calculated Allocated Total (USD):", allocatedTotalUSD.toFixed(2));
-    console.log("Calculated Committed Total (USD):", committedTotalUSD.toFixed(2));
-    console.log("Calculated Allocated Total (JPY):", allocatedTotalJPY.toFixed(2));
-    console.log("Calculated Committed Total (JPY):", committedTotalJPY.toFixed(2));
-
-    console.log("Difference in Allocated (USD):", (expectedAllocatedUSD - allocatedTotalUSD).toFixed(2));
-    console.log("Difference in Committed (USD):", (expectedCommittedUSD - committedTotalUSD).toFixed(2));
-
-    const fixedTotalUSD = 9800000000; // 9.8 billion USD
-    const fixedTotalJPY = Math.round(fixedTotalUSD * exchangeRate);
-
-    let allocatedTotalJPY = 0;
-    let committedTotalJPY = 0;
-
-    data.forEach(entry => {
-        if (entry.amount !== null) {
-            const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
-            if (entry.status === 'Allocation') {
-                allocatedTotalJPY += amountJPY;
-            } else if (entry.status === 'Commitment') {
-                committedTotalJPY += amountJPY;
-            }
-        }
-    });
-
-    const calculatedTotalJPY = allocatedTotalJPY + committedTotalJPY;
+    const grandTotalUSD = totalAllocated + totalCommitted;
+    const grandTotalJPY = grandTotalUSD * exchangeRate;
 
     const amountElement = document.getElementById('amount');
     const amountJapaneseElement = document.getElementById('amountJapanese');
-    const allocatedElement = document.getElementById('allocatedAmount');
-    const committedElement = document.getElementById('committedAmount');
-    const calculatedTotalElement = document.getElementById('calculatedTotal');
-    const lastUpdatedElement = document.getElementById('lastUpdated');
 
-    amountElement.textContent = `${formatJapaneseNumber(fixedTotalJPY)}円`;
-    amountJapaneseElement.textContent = `(固定総額: ${formatJapaneseNumber(fixedTotalJPY)}円)`;
-    allocatedElement.textContent = `割当済: ${formatJapaneseNumber(allocatedTotalJPY)}円`;
-    committedElement.textContent = `コミット済: ${formatJapaneseNumber(committedTotalJPY)}円`;
-    calculatedTotalElement.textContent = `計算総額: ${formatJapaneseNumber(calculatedTotalJPY)}円`;
-
-    const lastUpdateDate = new Date(Math.max(...data.map(entry => new Date(entry.date))));
-    lastUpdatedElement.textContent = `最終更新日: ${formatJapaneseDate(lastUpdateDate.toISOString().split('T')[0])}`;
-
-    console.log("Fixed Total (JPY):", fixedTotalJPY);
-    console.log("Calculated Total (JPY):", calculatedTotalJPY);
-    console.log("Difference:", fixedTotalJPY - calculatedTotalJPY);
+    amountElement.textContent = `${formatJapaneseNumber(grandTotalJPY)}円`;
+    amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(totalAllocated * exchangeRate)}円、コミット済: ${formatJapaneseNumber(totalCommitted * exchangeRate)}円)`;
 
     await createCumulativeChart(exchangeRate);
 }
 
+function setupSlider() {
+    const slider = document.querySelector('.slider');
+    const slides = document.querySelectorAll('.slide');
+    let currentIndex = 0;
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.style.display = i === index ? 'block' : 'none';
+        });
+    }
+
+    function nextSlide() {
+        currentIndex = (currentIndex + 1) % slides.length;
+        showSlide(currentIndex);
+    }
+
+    function prevSlide() {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        showSlide(currentIndex);
+    }
+
+    document.querySelector('.prev').addEventListener('click', prevSlide);
+    document.querySelector('.next').addEventListener('click', nextSlide);
+
+    showSlide(currentIndex);
+}
+
+// Call this function when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     updateDisplay().catch(error => console.error("Error in updateDisplay:", error));
+    setupSlider();
 });
