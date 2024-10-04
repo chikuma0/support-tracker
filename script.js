@@ -16,7 +16,7 @@ const data = [
     { date: '2022-11-22', amount: 2570000, purpose: '⚡ 発電機と防寒支援', status: 'Allocation' },
     { date: '2022-12-06', amount: 495370370, purpose: '🤲 人道支援', status: 'Allocation' },
     { date: '2023-01-23', amount: 2570000, purpose: '⚡ 発電機237台とソーラーランタンの供与', status: 'Allocation' },
-    { date: '2023-02-14', amount: 550000, purpose: '🧣 防���支援', status: 'Allocation' },
+    { date: '2023-02-14', amount: 550000, purpose: '🧣 防支援', status: 'Allocation' },
     { date: '2023-02-21', amount: 5500000000, purpose: '💰 金融支援（信用保証と他の支援を含む）', status: 'Commitment' },
     { date: '2023-02-23', amount: 23000000, purpose: '💰 MIGAのSURE信託基金への拠出', status: 'Allocation' },
     { date: '2023-03-30', amount: 400000000, purpose: '🏗️ 緊急復興支援（フェーズ2）', status: 'Allocation' },
@@ -62,7 +62,7 @@ function formatCompactJapaneseNumber(num) {
 
 function formatJapaneseDate(dateString) {
     const [year, month, day] = dateString.split('-');
-    return `${year}年${parseInt(month)}月${parseInt(day)}`;
+    return `${year}年${parseInt(month)}月${parseInt(day)}日`;
 }
 
 async function getExchangeRate() {
@@ -338,9 +338,14 @@ function setupSlider() {
             if (i === index) {
                 slide.style.display = 'flex';
                 slide.classList.add('active');
+                slide.classList.remove('inactive');
             } else {
-                slide.style.display = 'none';
                 slide.classList.remove('active');
+                slide.classList.add('inactive');
+                setTimeout(() => {
+                    slide.style.display = 'none';
+                    slide.classList.remove('inactive');
+                }, 500);
             }
         });
     }

@@ -23,12 +23,12 @@
         .container {
             background: white;
             border-radius: 20px;
-            padding: 2rem;
+            padding: 1.5rem; /* Reduced from 2rem */
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             text-align: center;
             max-width: 800px;
-            width: 90%;
-            margin: 2rem auto;
+            width: 95%; /* Increased from 90% */
+            margin: 1rem auto; /* Reduced from 2rem */
         } 
 
         h1 {
@@ -77,6 +77,11 @@
 
         .slide.active {
             display: flex; /* Change this from 'block' to 'flex' */
+            animation: slideInFromRight 0.5s forwards;
+        }
+
+        .slide.inactive {
+            animation: slideOutToLeft 0.5s forwards;
         }
 
         .slide-date {
@@ -120,12 +125,14 @@
             width: 100%;
             height: 400px;
             margin-top: 20px;
+            margin-bottom: 0.5rem; /* Reduce space after the chart */
         }
 
         #lastUpdated, #dataSource {
             font-size: 0.9rem;
             color: #7f8c8d;
             margin-top: 1rem;
+            margin-top: 0.5rem; /* Reduce space before the data source */
         }
 
         a {
@@ -173,7 +180,8 @@
             width: 100%;
             height: 100px; /* Adjust this value as needed */
             overflow: hidden;
-            border: 1px solid #ccc; /* Add this to see the container boundaries */
+            /* border: 1px solid #ccc; Remove this line */
+            margin-bottom: 1rem; /* Add some space after the slider */
         }
 
         #info-icon {
