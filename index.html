@@ -214,6 +214,14 @@
         .popup-content li {
             margin-bottom: 10px;
         }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -232,6 +240,7 @@
         <p id="dataSource">データソース: <a href="https://www.ifw-kiel.de/topics/war-against-ukraine/ukraine-support-tracker/" target="_blank">Ukraine Support Tracker</a></p>
         <div id="popup" class="popup">
             <div class="popup-content">
+                <span class="close-button">&times;</span>
                 <h3>支援リスト</h3>
                 <ul id="full-list"></ul>
             </div>
