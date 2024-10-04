@@ -249,17 +249,31 @@ async function updateDisplay() {
     const totalAmountUSD = 9800000000; // 9.8 billion USD
     const totalAmountJPY = Math.round(totalAmountUSD * exchangeRate);
     
+    // Calculate allocated and committed totals
+    const { allocatedTotal, committedTotal } = data.reduce((acc, entry) => {
+        if (entry.amount !== null) {
+            const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
+            if (entry.status === 'Allocation') {
+                acc.allocatedTotal += amountJPY;
+            } else {
+                acc.committedTotal += amountJPY;
+            }
+        }
+        return acc;
+    }, { allocatedTotal: 0, committedTotal: 0 });
+
+    const grandTotal = allocatedTotal + committedTotal;
+
     const amountElement = document.getElementById('amount');
     const amountJapaneseElement = document.getElementById('amountJapanese');
-
-    amountElement.textContent = `${totalAmountJPY.toLocaleString('ja-JP')}円`;
-    amountJapaneseElement.textContent = `(${formatJapaneseNumber(totalAmountJPY)}円)`;
-
-    const { yearlyData, overallTotal } = calculateAndVerifyTotals(data, exchangeRate, totalAmount);
-
+    const committedElement = document.getElementById('committedAmount');
     const lastUpdatedElement = document.getElementById('lastUpdated');
 
-    const lastUpdateDate = new Date('2024-06-30');
+    amountElement.textContent = `${formatJapaneseNumber(allocatedTotal)}円`;
+    amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(allocatedTotal)}円)`;
+    committedElement.textContent = `(コミット済: ${formatJapaneseNumber(committedTotal)}円)`;
+
+    const lastUpdateDate = new Date(Math.max(...data.map(entry => new Date(entry.date))));
     lastUpdatedElement.textContent = `最終更新日: ${formatJapaneseDate(lastUpdateDate.toISOString().split('T')[0])}`;
 
     const slider = document.getElementById('slider');
