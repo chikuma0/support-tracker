@@ -151,7 +151,8 @@ function setupPopup() {
     const popup = document.getElementById('popup');
     const closeButton = document.querySelector('.close-button');
 
-    infoIcon.addEventListener('mouseenter', () => {
+    infoIcon.addEventListener('click', () => {
+        createFullList(140); // Use a default exchange rate for simplicity
         popup.style.display = 'block';
     });
 
@@ -282,7 +283,19 @@ async function updateDisplay() {
     amountElement.textContent = `${formatJapaneseNumber(grandTotalJPY)}円`;
     amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(allocatedTotalJPY)}円、コミット済: ${formatJapaneseNumber(committedTotalJPY)}円)`;
 
+    const slider = document.getElementById('slider');
+    slider.innerHTML = ''; // Clear existing slides
+    data.forEach(entry => {
+        const slide = createSlide(entry, exchangeRate);
+        slider.appendChild(slide);
+    });
+
+    setupSlider(); // Call this after creating slides
+
     await createCumulativeChart(exchangeRate);
+
+    const lastUpdateDate = new Date(Math.max(...data.map(entry => new Date(entry.date))));
+    document.getElementById('lastUpdated').textContent = `最終更新日: ${formatJapaneseDate(lastUpdateDate.toISOString().split('T')[0])}`;
 }
 
 function setupSlider() {
@@ -315,5 +328,5 @@ function setupSlider() {
 // Call this function when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     updateDisplay().catch(error => console.error("Error in updateDisplay:", error));
-    setupSlider();
+    setupPopup();
 });
