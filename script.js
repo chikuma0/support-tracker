@@ -351,19 +351,17 @@ function setupSlider() {
         slides.forEach((slide, i) => {
             if (i === index) {
                 slide.style.display = 'flex';
-                setTimeout(() => slide.classList.add('active'), 50);
+                setTimeout(() => {
+                    slide.classList.add('active');
+                    slide.classList.remove('inactive');
+                }, 20);
             } else {
                 slide.classList.remove('active');
-                if (slide.classList.contains('inactive')) {
-                    slide.classList.remove('inactive');
+                slide.classList.add('inactive');
+                setTimeout(() => {
                     slide.style.display = 'none';
-                } else {
-                    slide.classList.add('inactive');
-                    setTimeout(() => {
-                        slide.style.display = 'none';
-                        slide.classList.remove('inactive');
-                    }, 500);
-                }
+                    slide.classList.remove('inactive');
+                }, 400);
             }
         });
     }
@@ -373,8 +371,8 @@ function setupSlider() {
         showSlide(currentIndex);
     }
 
-    // Auto-slide every 5 seconds
-    setInterval(nextSlide, 5000);
+    // Auto-slide every 4 seconds (reduced from 5)
+    setInterval(nextSlide, 4000);
 
     showSlide(currentIndex);
 }
