@@ -301,6 +301,7 @@ async function updateDisplay() {
             const slide = createSlide(entry, exchangeRate);
             slider.appendChild(slide);
         });
+        setupSlider(); // Call this after creating slides
     } else {
         console.error('Slider container or slider element not found');
     }
@@ -315,8 +316,9 @@ function setupSlider() {
     const sliderContainer = document.getElementById('slider-container');
     const slider = document.getElementById('slider');
     const slides = slider ? slider.querySelectorAll('.slide') : [];
-    console.log('Number of slides:', slides.length);
     let currentIndex = 0;
+
+    console.log('Number of slides:', slides.length);
 
     if (!sliderContainer || !slider || slides.length === 0) {
         console.error('Slider container, slider, or slides not found');
@@ -343,13 +345,7 @@ function setupSlider() {
 
     function showSlide(index) {
         slides.forEach((slide, i) => {
-            if (i === index) {
-                slide.classList.add('active');
-                slide.style.display = 'flex';
-            } else {
-                slide.classList.remove('active');
-                slide.style.display = 'none';
-            }
+            slide.style.display = i === index ? 'block' : 'none';
         });
     }
 
