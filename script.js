@@ -61,7 +61,7 @@ function formatCompactJapaneseNumber(num) {
 
 function formatJapaneseDate(dateString) {
     const [year, month, day] = dateString.split('-');
-    return `${year}年${parseInt(month)}月${parseInt(day)}日`;
+    return `${year}年${parseInt(month)}月${parseInt(day)}��`;
 }
 
 async function getExchangeRate() {
@@ -293,8 +293,9 @@ async function updateDisplay() {
     amountElement.textContent = `${formatJapaneseNumber(grandTotalJPY)}円`;
     amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(allocatedTotalJPY)}円、コミット済: ${formatJapaneseNumber(committedTotalJPY)}円)`;
 
+    const sliderContainer = document.getElementById('slider-container');
     const slider = document.getElementById('slider');
-    if (slider) {
+    if (sliderContainer && slider) {
         slider.innerHTML = ''; // Clear existing slides
         data.forEach(entry => {
             const slide = createSlide(entry, exchangeRate);
@@ -302,7 +303,7 @@ async function updateDisplay() {
         });
         setupSlider(); // Call this after creating slides
     } else {
-        console.error('Slider element not found');
+        console.error('Slider container or slider element not found');
     }
 
     await createCumulativeChart(exchangeRate);
@@ -312,15 +313,32 @@ async function updateDisplay() {
 }
 
 function setupSlider() {
-    const slider = document.querySelector('.slider');
-    const slides = document.querySelectorAll('.slide');
-    const prevButton = document.querySelector('.prev');
-    const nextButton = document.querySelector('.next');
+    const sliderContainer = document.getElementById('slider-container');
+    const slider = document.getElementById('slider');
+    const slides = slider ? slider.querySelectorAll('.slide') : [];
     let currentIndex = 0;
 
-    if (!slider || slides.length === 0) {
-        console.error('Slider or slides not found');
+    if (!sliderContainer || !slider || slides.length === 0) {
+        console.error('Slider container, slider, or slides not found');
         return;
+    }
+
+    // Create navigation buttons if they don't exist
+    let prevButton = sliderContainer.querySelector('.prev');
+    let nextButton = sliderContainer.querySelector('.next');
+
+    if (!prevButton) {
+        prevButton = document.createElement('button');
+        prevButton.className = 'prev';
+        prevButton.innerHTML = '&#10094;';
+        sliderContainer.insertBefore(prevButton, slider);
+    }
+
+    if (!nextButton) {
+        nextButton = document.createElement('button');
+        nextButton.className = 'next';
+        nextButton.innerHTML = '&#10095;';
+        sliderContainer.appendChild(nextButton);
     }
 
     function showSlide(index) {
@@ -339,17 +357,8 @@ function setupSlider() {
         showSlide(currentIndex);
     }
 
-    if (prevButton) {
-        prevButton.addEventListener('click', prevSlide);
-    } else {
-        console.error('Previous button not found');
-    }
-
-    if (nextButton) {
-        nextButton.addEventListener('click', nextSlide);
-    } else {
-        console.error('Next button not found');
-    }
+    prevButton.addEventListener('click', prevSlide);
+    nextButton.addEventListener('click', nextSlide);
 
     showSlide(currentIndex);
 }
