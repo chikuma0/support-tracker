@@ -315,6 +315,7 @@ function setupSlider() {
     const sliderContainer = document.getElementById('slider-container');
     const slider = document.getElementById('slider');
     const slides = slider ? slider.querySelectorAll('.slide') : [];
+    console.log('Number of slides:', slides.length);
     let currentIndex = 0;
 
     if (!sliderContainer || !slider || slides.length === 0) {
@@ -342,7 +343,13 @@ function setupSlider() {
 
     function showSlide(index) {
         slides.forEach((slide, i) => {
-            slide.style.display = i === index ? 'block' : 'none';
+            if (i === index) {
+                slide.classList.add('active');
+                slide.style.display = 'flex';
+            } else {
+                slide.classList.remove('active');
+                slide.style.display = 'none';
+            }
         });
     }
 
