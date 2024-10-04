@@ -392,7 +392,7 @@ function setupShareButton() {
     if (shareButton) {
         shareButton.addEventListener('click', async () => {
             const shareData = {
-                title: '日本政府によるウクライナ支援金',
+                title: '日本政府が送ったウクライナへの支援金',
                 url: 'https://jpua.xyz'
             };
 
