@@ -185,8 +185,36 @@ async function createCumulativeChart(exchangeRate) {
     });
 }
 
+function calculateAndVerifyTotals(data, exchangeRate, expectedTotalUSD) {
+    const yearlyData = {};
+    let overallTotal = 0;
+
+    data.forEach(entry => {
+        const year = entry.date.split('-')[0];
+        if (!yearlyData[year]) yearlyData[year] = 0;
+        
+        if (entry.amount !== null) {
+            const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
+            yearlyData[year] += amountJPY;
+            overallTotal += amountJPY;
+        }
+    });
+
+    const expectedTotalJPY = expectedTotalUSD * exchangeRate * 1000000000;
+    
+    console.log('Yearly Totals (JPY):', yearlyData);
+    console.log('Overall Total (JPY):', overallTotal);
+    console.log('Expected Total (JPY):', expectedTotalJPY);
+    console.log('Difference:', overallTotal - expectedTotalJPY);
+    console.log('Difference Percentage:', ((overallTotal - expectedTotalJPY) / expectedTotalJPY) * 100 + '%');
+
+    return { yearlyData, overallTotal };
+}
+
 async function updateDisplay() {
     const exchangeRate = await getExchangeRate();
+    const { yearlyData, overallTotal } = calculateAndVerifyTotals(data, exchangeRate, totalAmount);
+
     console.log("Exchange rate:", exchangeRate);
 
     const amountElement = document.getElementById('amount');
