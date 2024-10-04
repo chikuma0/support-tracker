@@ -180,12 +180,11 @@ async function createCumulativeChart(exchangeRate) {
 
     const totalAllocated = allocatedData.reduce((sum, value) => sum + value, 0);
     const totalCommitted = committedData.reduce((sum, value) => sum + value, 0);
-    const grandTotal = totalAllocated + totalCommitted;
 
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: [...years, 'Total'],
+            labels: [...years, '合計'],
             datasets: [
                 {
                     label: '割当済 (円)',
@@ -205,37 +204,12 @@ async function createCumulativeChart(exchangeRate) {
         },
         options: {
             scales: {
-                x: {
-                    stacked: true,
-                },
                 y: {
-                    stacked: true,
                     beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return formatJapaneseNumber(value) + '円';
-                        }
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += formatJapaneseNumber(context.parsed.y) + '円';
-                            }
-                            return label;
-                        },
-                        footer: function(tooltipItems) {
-                            let total = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
-                            return '合計: ' + formatJapaneseNumber(total) + '円';
-                        }
-                    }
+                    stacked: true
+                },
+                x: {
+                    stacked: true
                 }
             }
         }
