@@ -1,4 +1,4 @@
-const totalAmount = 9.80; // Total amount in billion USD
+const totalAmount = 9.80 + 13.36; // Total amount in billion USD (allocations + commitments)
 
 const data = [
     { date: '2022-02-27', amount: 59300000, purpose: '🤲 緊急人道支援', status: 'Allocation' },
@@ -233,29 +233,41 @@ async function createCumulativeChart(exchangeRate) {
 }
 
 function calculateAndVerifyTotals(data, exchangeRate, expectedTotalUSD) {
-    const yearlyData = {};
-    let overallTotal = 0;
+    let yearlyAllocations = {};
+    let yearlyCommitments = {};
+    let overallAllocations = 0;
+    let overallCommitments = 0;
 
     data.forEach(entry => {
         const year = entry.date.split('-')[0];
-        if (!yearlyData[year]) yearlyData[year] = 0;
+        if (!yearlyAllocations[year]) yearlyAllocations[year] = 0;
+        if (!yearlyCommitments[year]) yearlyCommitments[year] = 0;
         
         if (entry.amount !== null) {
             const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
-            yearlyData[year] += amountJPY;
-            overallTotal += amountJPY;
+            if (entry.status === 'Allocation') {
+                yearlyAllocations[year] += amountJPY;
+                overallAllocations += amountJPY;
+            } else if (entry.status === 'Commitment') {
+                yearlyCommitments[year] += amountJPY;
+                overallCommitments += amountJPY;
+            }
         }
     });
 
+    const overallTotal = overallAllocations + overallCommitments;
     const expectedTotalJPY = expectedTotalUSD * exchangeRate * 1000000000;
     
-    console.log('Yearly Totals (JPY):', yearlyData);
+    console.log('Yearly Allocations (JPY):', yearlyAllocations);
+    console.log('Yearly Commitments (JPY):', yearlyCommitments);
+    console.log('Overall Allocations (JPY):', overallAllocations);
+    console.log('Overall Commitments (JPY):', overallCommitments);
     console.log('Overall Total (JPY):', overallTotal);
     console.log('Expected Total (JPY):', expectedTotalJPY);
     console.log('Difference:', overallTotal - expectedTotalJPY);
     console.log('Difference Percentage:', ((overallTotal - expectedTotalJPY) / expectedTotalJPY) * 100 + '%');
 
-    return { yearlyData, overallTotal };
+    return { yearlyAllocations, yearlyCommitments, overallAllocations, overallCommitments, overallTotal };
 }
 
 async function updateDisplay() {
@@ -268,24 +280,11 @@ async function updateDisplay() {
     }
     console.log("Current exchange rate:", exchangeRate);
 
-    let totalAllocated = 0;
-    let totalCommitted = 0;
+    const { overallAllocations, overallCommitments } = calculateAndVerifyTotals(data, exchangeRate, totalAmount);
 
-    data.forEach(entry => {
-        if (entry.amount !== null) {
-            const amountUSD = entry.currency === 'JPY' ? entry.amount / exchangeRate : entry.amount;
-            if (entry.status === 'Allocation') {
-                totalAllocated += amountUSD;
-            } else if (entry.status === 'Commitment') {
-                totalCommitted += amountUSD;
-            }
-        }
-    });
-
-    const grandTotalUSD = totalAllocated + totalCommitted;
-    const grandTotalJPY = grandTotalUSD * exchangeRate;
-    const allocatedTotalJPY = totalAllocated * exchangeRate;
-    const committedTotalJPY = totalCommitted * exchangeRate;
+    const grandTotalJPY = overallAllocations + overallCommitments;
+    const allocatedTotalJPY = overallAllocations;
+    const committedTotalJPY = overallCommitments;
 
     const amountElement = document.getElementById('amount');
     const amountJapaneseElement = document.getElementById('amountJapanese');
@@ -345,7 +344,13 @@ function setupSlider() {
 
     function showSlide(index) {
         slides.forEach((slide, i) => {
-            slide.style.display = i === index ? 'block' : 'none';
+            if (i === index) {
+                slide.style.display = 'flex';
+                slide.classList.add('active');
+            } else {
+                slide.style.display = 'none';
+                slide.classList.remove('active');
+            }
         });
     }
 
