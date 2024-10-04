@@ -21,7 +21,7 @@ const data = [
     { date: '2023-03-30', amount: 400000000, purpose: '🏗️ 緊急復興支援（フェーズ2）', status: 'Allocation' },
     { date: '2023-03-30', amount: 70000000, purpose: '⚡ 重要エネルギーインフラの復旧支援', status: 'Allocation' },
     { date: '2023-03-30', amount: 30000000, purpose: '🪖 NATOのCAP信託基金への拠出', status: 'Allocation' },
-    { date: '2023-04-21', amount: 471000000, purpose: '💰 世界銀行のURTFへの拠出', status: 'Allocation' },
+    { date: '2023-04-21', amount: 471000000, purpose: '💰 世界銀行��URTFへの拠出', status: 'Allocation' },
     { date: '2023-06-20', amount: 5000000, purpose: '🌊 洪水災害対応支援', status: 'Allocation' },
     { date: '2023-06-23', amount: null, purpose: '🌊 洪水災害対応物資支援', status: 'Allocation' },
     { date: '2023-07-20', amount: 1500000000, purpose: '💰 世界銀行融資のADVANCE信託基金による信用補完', status: 'Allocation' },
@@ -162,26 +162,54 @@ async function createCumulativeChart(exchangeRate) {
     const ctx = document.getElementById('cumulativeChart').getContext('2d');
     const yearlyData = data.reduce((acc, entry) => {
         const year = entry.date.split('-')[0];
-        if (!acc[year]) acc[year] = 0;
-        acc[year] += entry.amount * exchangeRate;
+        if (!acc[year]) acc[year] = { allocated: 0, committed: 0 };
+        if (entry.amount !== null) {
+            const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
+            if (entry.status === 'Allocation') {
+                acc[year].allocated += amountJPY;
+            } else {
+                acc[year].committed += amountJPY;
+            }
+        }
         return acc;
     }, {});
+
+    const years = Object.keys(yearlyData);
+    const allocatedData = years.map(year => yearlyData[year].allocated);
+    const committedData = years.map(year => yearlyData[year].committed);
+
+    const totalAllocated = allocatedData.reduce((sum, value) => sum + value, 0);
+    const totalCommitted = committedData.reduce((sum, value) => sum + value, 0);
+    const grandTotal = totalAllocated + totalCommitted;
 
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: Object.keys(yearlyData),
-            datasets: [{
-                label: '支援金額 (円)',
-                data: Object.values(yearlyData),
-                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
+            labels: [...years, 'Total'],
+            datasets: [
+                {
+                    label: '割当済 (円)',
+                    data: [...allocatedData, totalAllocated],
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'コミット済 (円)',
+                    data: [...committedData, totalCommitted],
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                }
+            ]
         },
         options: {
             scales: {
+                x: {
+                    stacked: true,
+                },
                 y: {
+                    stacked: true,
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
@@ -194,7 +222,18 @@ async function createCumulativeChart(exchangeRate) {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return formatJapaneseNumber(context.parsed.y) + '円';
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += formatJapaneseNumber(context.parsed.y) + '円';
+                            }
+                            return label;
+                        },
+                        footer: function(tooltipItems) {
+                            let total = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
+                            return '合計: ' + formatJapaneseNumber(total) + '円';
                         }
                     }
                 }
@@ -231,8 +270,11 @@ function calculateAndVerifyTotals(data, exchangeRate, expectedTotalUSD) {
 
 async function updateDisplay() {
     const exchangeRate = await getExchangeRate();
-    const totalAmountJPY = Math.round(totalAmount * exchangeRate * 1000000000);
+    console.log("Exchange rate:", exchangeRate);
 
+    const totalAmountUSD = 9800000000; // 9.8 billion USD
+    const totalAmountJPY = Math.round(totalAmountUSD * exchangeRate);
+    
     const amountElement = document.getElementById('amount');
     const amountJapaneseElement = document.getElementById('amountJapanese');
 
@@ -240,8 +282,6 @@ async function updateDisplay() {
     amountJapaneseElement.textContent = `(${formatJapaneseNumber(totalAmountJPY)}円)`;
 
     const { yearlyData, overallTotal } = calculateAndVerifyTotals(data, exchangeRate, totalAmount);
-
-    console.log("Exchange rate:", exchangeRate);
 
     const lastUpdatedElement = document.getElementById('lastUpdated');
 
