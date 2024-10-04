@@ -16,7 +16,7 @@ const data = [
     { date: '2022-11-22', amount: 2570000, purpose: '⚡ 発電機と防寒支援', status: 'Allocation' },
     { date: '2022-12-06', amount: 495370370, purpose: '🤲 人道支援', status: 'Allocation' },
     { date: '2023-01-23', amount: 2570000, purpose: '⚡ 発電機237台とソーラーランタンの供与', status: 'Allocation' },
-    { date: '2023-02-14', amount: 550000, purpose: '🧣 防寒支援', status: 'Allocation' },
+    { date: '2023-02-14', amount: 550000, purpose: '🧣 防���支援', status: 'Allocation' },
     { date: '2023-02-21', amount: 5500000000, purpose: '💰 金融支援（信用保証と他の支援を含む）', status: 'Commitment' },
     { date: '2023-02-23', amount: 23000000, purpose: '💰 MIGAのSURE信託基金への拠出', status: 'Allocation' },
     { date: '2023-03-30', amount: 400000000, purpose: '🏗️ 緊急復興支援（フェーズ2）', status: 'Allocation' },
@@ -322,34 +322,15 @@ async function updateDisplay() {
 }
 
 function setupSlider() {
-    const sliderContainer = document.getElementById('slider-container');
     const slider = document.getElementById('slider');
     const slides = slider ? slider.querySelectorAll('.slide') : [];
     let currentIndex = 0;
 
     console.log('Number of slides:', slides.length);
 
-    if (!sliderContainer || !slider || slides.length === 0) {
-        console.error('Slider container, slider, or slides not found');
+    if (!slider || slides.length === 0) {
+        console.error('Slider or slides not found');
         return;
-    }
-
-    // Create navigation buttons if they don't exist
-    let prevButton = sliderContainer.querySelector('.prev');
-    let nextButton = sliderContainer.querySelector('.next');
-
-    if (!prevButton) {
-        prevButton = document.createElement('button');
-        prevButton.className = 'prev';
-        prevButton.innerHTML = '&#10094;';
-        sliderContainer.insertBefore(prevButton, slider);
-    }
-
-    if (!nextButton) {
-        nextButton = document.createElement('button');
-        nextButton.className = 'next';
-        nextButton.innerHTML = '&#10095;';
-        sliderContainer.appendChild(nextButton);
     }
 
     function showSlide(index) {
@@ -362,7 +343,6 @@ function setupSlider() {
                 slide.classList.remove('active');
             }
         });
-        console.log('Current slide:', index);
     }
 
     function nextSlide() {
@@ -370,13 +350,8 @@ function setupSlider() {
         showSlide(currentIndex);
     }
 
-    function prevSlide() {
-        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-        showSlide(currentIndex);
-    }
-
-    prevButton.addEventListener('click', prevSlide);
-    nextButton.addEventListener('click', nextSlide);
+    // Auto-slide every 5 seconds
+    setInterval(nextSlide, 5000);
 
     showSlide(currentIndex);
 }
