@@ -166,66 +166,70 @@ function setupPopup() {
 }
 
 async function createCumulativeChart(exchangeRate) {
-    const ctx = document.getElementById('cumulativeChart').getContext('2d');
-    const yearlyData = data.reduce((acc, entry) => {
-        const year = entry.date.split('-')[0];
-        if (!acc[year]) acc[year] = { allocated: 0, committed: 0 };
-        if (entry.amount !== null) {
-            const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
-            if (entry.status === 'Allocation') {
-                acc[year].allocated += amountJPY;
-            } else {
-                acc[year].committed += amountJPY;
-            }
-        }
-        return acc;
-    }, {});
-
-    const years = Object.keys(yearlyData);
-    const allocatedData = years.map(year => yearlyData[year].allocated);
-    const committedData = years.map(year => yearlyData[year].committed);
-
-    const totalAllocated = allocatedData.reduce((sum, value) => sum + value, 0);
-    const totalCommitted = committedData.reduce((sum, value) => sum + value, 0);
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [...years, '合計'],
-            datasets: [
-                {
-                    label: '割当済 (円)',
-                    data: [...allocatedData, totalAllocated],
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'コミット済 (円)',
-                    data: [...committedData, totalCommitted],
-                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 1
+    try {
+        const ctx = document.getElementById('cumulativeChart').getContext('2d');
+        const yearlyData = data.reduce((acc, entry) => {
+            const year = entry.date.split('-')[0];
+            if (!acc[year]) acc[year] = { allocated: 0, committed: 0 };
+            if (entry.amount !== null) {
+                const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
+                if (entry.status === 'Allocation') {
+                    acc[year].allocated += amountJPY;
+                } else {
+                    acc[year].committed += amountJPY;
                 }
-            ]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    stacked: true,
-                    ticks: {
-                        callback: function(value) {
-                            return formatJapaneseNumber(value) + '円';
-                        }
+            }
+            return acc;
+        }, {});
+
+        const years = Object.keys(yearlyData);
+        const allocatedData = years.map(year => yearlyData[year].allocated);
+        const committedData = years.map(year => yearlyData[year].committed);
+
+        const totalAllocated = allocatedData.reduce((sum, value) => sum + value, 0);
+        const totalCommitted = committedData.reduce((sum, value) => sum + value, 0);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [...years, '合計'],
+                datasets: [
+                    {
+                        label: '割当済 (円)',
+                        data: [...allocatedData, totalAllocated],
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'コミット済 (円)',
+                        data: [...committedData, totalCommitted],
+                        backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
                     }
-                },
-                x: {
-                    stacked: true
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stacked: true,
+                        ticks: {
+                            callback: function(value) {
+                                return formatJapaneseNumber(value) + '円';
+                            }
+                        }
+                    },
+                    x: {
+                        stacked: true
+                    }
                 }
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error("Error creating chart:", error);
+    }
 }
 
 function calculateAndVerifyTotals(data, exchangeRate, expectedTotalUSD) {
@@ -255,7 +259,13 @@ function calculateAndVerifyTotals(data, exchangeRate, expectedTotalUSD) {
 }
 
 async function updateDisplay() {
-    const exchangeRate = await getExchangeRate();
+    let exchangeRate;
+    try {
+        exchangeRate = await getExchangeRate();
+    } catch (error) {
+        console.error("Error fetching exchange rate:", error);
+        exchangeRate = 140; // Use a default rate if fetching fails
+    }
     console.log("Current exchange rate:", exchangeRate);
 
     let totalAllocated = 0;
@@ -329,4 +339,6 @@ function setupSlider() {
 document.addEventListener('DOMContentLoaded', function() {
     updateDisplay().catch(error => console.error("Error in updateDisplay:", error));
     setupPopup();
+    setupSlider();
+    calculateAndVerifyTotals(data, 140, totalAmount); // Use a default exchange rate
 });
