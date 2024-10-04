@@ -246,54 +246,44 @@ async function updateDisplay() {
     const exchangeRate = await getExchangeRate();
     console.log("Exchange rate:", exchangeRate);
 
-    const totalAmountUSD = 9800000000; // 9.8 billion USD
-    const totalAmountJPY = Math.round(totalAmountUSD * exchangeRate);
-    
-    // Calculate allocated and committed totals
-    const { allocatedTotal, committedTotal } = data.reduce((acc, entry) => {
+    const fixedTotalUSD = 9800000000; // 9.8 billion USD
+    const fixedTotalJPY = Math.round(fixedTotalUSD * exchangeRate);
+
+    let allocatedTotalJPY = 0;
+    let committedTotalJPY = 0;
+
+    data.forEach(entry => {
         if (entry.amount !== null) {
             const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
             if (entry.status === 'Allocation') {
-                acc.allocatedTotal += amountJPY;
-            } else {
-                acc.committedTotal += amountJPY;
+                allocatedTotalJPY += amountJPY;
+            } else if (entry.status === 'Commitment') {
+                committedTotalJPY += amountJPY;
             }
         }
-        return acc;
-    }, { allocatedTotal: 0, committedTotal: 0 });
+    });
 
-    const grandTotal = allocatedTotal + committedTotal;
+    const calculatedTotalJPY = allocatedTotalJPY + committedTotalJPY;
 
     const amountElement = document.getElementById('amount');
     const amountJapaneseElement = document.getElementById('amountJapanese');
+    const allocatedElement = document.getElementById('allocatedAmount');
     const committedElement = document.getElementById('committedAmount');
+    const calculatedTotalElement = document.getElementById('calculatedTotal');
     const lastUpdatedElement = document.getElementById('lastUpdated');
 
-    amountElement.textContent = `${formatJapaneseNumber(allocatedTotal)}円`;
-    amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(allocatedTotal)}円)`;
-    committedElement.textContent = `(コミット済: ${formatJapaneseNumber(committedTotal)}円)`;
+    amountElement.textContent = `${formatJapaneseNumber(fixedTotalJPY)}円`;
+    amountJapaneseElement.textContent = `(固定総額: ${formatJapaneseNumber(fixedTotalJPY)}円)`;
+    allocatedElement.textContent = `割当済: ${formatJapaneseNumber(allocatedTotalJPY)}円`;
+    committedElement.textContent = `コミット済: ${formatJapaneseNumber(committedTotalJPY)}円`;
+    calculatedTotalElement.textContent = `計算総額: ${formatJapaneseNumber(calculatedTotalJPY)}円`;
 
     const lastUpdateDate = new Date(Math.max(...data.map(entry => new Date(entry.date))));
     lastUpdatedElement.textContent = `最終更新日: ${formatJapaneseDate(lastUpdateDate.toISOString().split('T')[0])}`;
 
-    const slider = document.getElementById('slider');
-    slider.innerHTML = '';
-    const slides = data.map(entry => createSlide(entry, exchangeRate));
-    slides.forEach(slide => slider.appendChild(slide));
-
-    let currentSlide = 0;
-    slides[currentSlide].style.opacity = 1;
-
-    setInterval(() => {
-        currentSlide = (currentSlide + 1) % data.length;
-        for (let i = 0; i < slides.length; i++) {
-            slides[i].style.transform = `translateY(${(i - currentSlide) * 100}%)`;
-            slides[i].style.opacity = i === currentSlide ? 1 : 0;
-        }
-    }, 5000);
-
-    createFullList(exchangeRate);
-    setupPopup();
+    console.log("Fixed Total (JPY):", fixedTotalJPY);
+    console.log("Calculated Total (JPY):", calculatedTotalJPY);
+    console.log("Difference:", fixedTotalJPY - calculatedTotalJPY);
 
     await createCumulativeChart(exchangeRate);
 }
