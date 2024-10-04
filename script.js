@@ -61,7 +61,7 @@ function formatCompactJapaneseNumber(num) {
 
 function formatJapaneseDate(dateString) {
     const [year, month, day] = dateString.split('-');
-    return `${year}年${parseInt(month)}月${parseInt(day)}��`;
+    return `${year}年${parseInt(month)}月${parseInt(day)}`;
 }
 
 async function getExchangeRate() {
@@ -301,7 +301,6 @@ async function updateDisplay() {
             const slide = createSlide(entry, exchangeRate);
             slider.appendChild(slide);
         });
-        setupSlider(); // Call this after creating slides
     } else {
         console.error('Slider container or slider element not found');
     }
@@ -365,7 +364,11 @@ function setupSlider() {
 
 // Call this function when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    updateDisplay().catch(error => console.error("Error in updateDisplay:", error));
-    setupPopup();
-    calculateAndVerifyTotals(data, 140, totalAmount); // Use a default exchange rate
+    updateDisplay()
+        .then(() => {
+            setupSlider();
+            setupPopup();
+            calculateAndVerifyTotals(data, 140, totalAmount); // Use a default exchange rate
+        })
+        .catch(error => console.error("Error in updateDisplay:", error));
 });
