@@ -273,12 +273,14 @@ async function updateDisplay() {
 
     const grandTotalUSD = totalAllocated + totalCommitted;
     const grandTotalJPY = grandTotalUSD * exchangeRate;
+    const allocatedTotalJPY = totalAllocated * exchangeRate;
+    const committedTotalJPY = totalCommitted * exchangeRate;
 
     const amountElement = document.getElementById('amount');
     const amountJapaneseElement = document.getElementById('amountJapanese');
 
     amountElement.textContent = `${formatJapaneseNumber(grandTotalJPY)}円`;
-    amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(totalAllocated * exchangeRate)}円、コミット済: ${formatJapaneseNumber(totalCommitted * exchangeRate)}円)`;
+    amountJapaneseElement.textContent = `(割当済: ${formatJapaneseNumber(allocatedTotalJPY)}円、コミット済: ${formatJapaneseNumber(committedTotalJPY)}円)`;
 
     await createCumulativeChart(exchangeRate);
 }
