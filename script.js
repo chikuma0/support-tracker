@@ -246,6 +246,35 @@ async function updateDisplay() {
     const exchangeRate = await getExchangeRate();
     console.log("Exchange rate:", exchangeRate);
 
+    const expectedAllocatedUSD = 9800000000; // 9.8 billion USD
+    const expectedCommittedUSD = 13360000000; // 13.36 billion USD
+
+    let allocatedTotalUSD = 0;
+    let committedTotalUSD = 0;
+
+    data.forEach(entry => {
+        if (entry.amount !== null) {
+            const amountUSD = entry.currency === 'JPY' ? entry.amount / exchangeRate : entry.amount;
+            console.log(`${entry.date}: ${entry.status} - ${amountUSD.toFixed(2)} USD`);
+            if (entry.status === 'Allocation') {
+                allocatedTotalUSD += amountUSD;
+            } else if (entry.status === 'Commitment') {
+                committedTotalUSD += amountUSD;
+            }
+        }
+    });
+
+    const allocatedTotalJPY = allocatedTotalUSD * exchangeRate;
+    const committedTotalJPY = committedTotalUSD * exchangeRate;
+
+    console.log("Calculated Allocated Total (USD):", allocatedTotalUSD.toFixed(2));
+    console.log("Calculated Committed Total (USD):", committedTotalUSD.toFixed(2));
+    console.log("Calculated Allocated Total (JPY):", allocatedTotalJPY.toFixed(2));
+    console.log("Calculated Committed Total (JPY):", committedTotalJPY.toFixed(2));
+
+    console.log("Difference in Allocated (USD):", (expectedAllocatedUSD - allocatedTotalUSD).toFixed(2));
+    console.log("Difference in Committed (USD):", (expectedCommittedUSD - committedTotalUSD).toFixed(2));
+
     const fixedTotalUSD = 9800000000; // 9.8 billion USD
     const fixedTotalJPY = Math.round(fixedTotalUSD * exchangeRate);
 
