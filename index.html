@@ -63,25 +63,27 @@
             height: 100%;
             top: 0;
             left: 0;
-            display: none;
+            display: flex;
             flex-direction: column;
             justify-content: center;
             font-size: 0.9rem;
             color: #34495e;
-            transition: transform 0.5s ease, opacity 0.5s ease;
-            opacity: 1; /* Change this from 0 to 1 */
+            transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.5s ease;
+            opacity: 0;
+            transform: translateY(100%);
             padding: 5px 10px;
             box-sizing: border-box;
             cursor: default;
         }
 
         .slide.active {
-            display: flex; /* Change this from 'block' to 'flex' */
-            animation: slideInFromRight 0.5s forwards;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .slide.inactive {
-            animation: slideOutToLeft 0.5s forwards;
+            opacity: 0;
+            transform: translateY(-100%);
         }
 
         .slide-date {
@@ -123,7 +125,7 @@
 
         #chartContainer {
             width: 100%;
-            height: 400px;
+            height: 300px; /* Adjust as needed */
             margin-top: 20px;
             margin-bottom: 0.5rem; /* Reduce space after the chart */
         }
@@ -294,11 +296,25 @@
         .next {
             right: 10px;
         }
+
+        #shareButton {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        #shareButton:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>日本政府によるウクライナ支援金</h1>
+        <h1>日本政府によるウクライナ援金</h1>
         <div id="totalAmount">
             <div id="amount"></div>
             <div id="amountJapanese"></div>
@@ -311,7 +327,7 @@
             <div id="slider"></div>
             <div id="info-icon">ℹ️</div>
         </div>
-        <div id="chartContainer" style="width: 100%; height: 400px;">
+        <div id="chartContainer" style="width: 100%; height: 300px;">
             <canvas id="cumulativeChart"></canvas>
         </div>
         <p id="lastUpdated"></p>
@@ -319,10 +335,11 @@
         <div id="popup" class="popup">
             <div class="popup-content">
                 <span class="close-button">&times;</span>
-                <h3>支援リスト</h3>
+                <h3>援リスト</h3>
                 <ul id="full-list"></ul>
             </div>
         </div>
+        <button id="shareButton">共有</button>
     </div>
 
     <script src="script.js"></script>

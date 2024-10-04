@@ -226,6 +226,19 @@ async function createCumulativeChart(exchangeRate) {
                     x: {
                         stacked: true
                     }
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            let label = data.datasets[tooltipItem.datasetIndex].label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            const value = tooltipItem.yLabel;
+                            label += formatLargeJapaneseNumber(value) + '円';
+                            return label;
+                        }
+                    }
                 }
             }
         });
@@ -338,19 +351,18 @@ function setupSlider() {
         slides.forEach((slide, i) => {
             if (i === index) {
                 slide.style.display = 'flex';
-                slide.classList.add('active');
-                slide.classList.remove('inactive');
+                setTimeout(() => slide.classList.add('active'), 50);
             } else {
-                if (slide.classList.contains('active')) {
-                    slide.classList.remove('active');
+                slide.classList.remove('active');
+                if (slide.classList.contains('inactive')) {
+                    slide.classList.remove('inactive');
+                    slide.style.display = 'none';
+                } else {
                     slide.classList.add('inactive');
                     setTimeout(() => {
                         slide.style.display = 'none';
                         slide.classList.remove('inactive');
                     }, 500);
-                } else {
-                    slide.style.display = 'none';
-                    slide.classList.remove('active', 'inactive');
                 }
             }
         });
@@ -377,13 +389,41 @@ function formatLargeJapaneseNumber(num) {
     return Math.floor(num).toLocaleString() + units[unitIndex];
 }
 
+function setupShareButton() {
+    const shareButton = document.getElementById('shareButton');
+    if (shareButton) {
+        shareButton.addEventListener('click', async () => {
+            const shareData = {
+                title: '日本政府によるウクライナ支援金',
+                url: 'https://jpua.xyz'
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.error('Error sharing:', err);
+                }
+            } else {
+                // Fallback to copying URL to clipboard
+                navigator.clipboard.writeText(shareData.url).then(() => {
+                    alert('URLがクリップボードにコピーされました');
+                }, (err) => {
+                    console.error('Could not copy text: ', err);
+                });
+            }
+        });
+    }
+}
+
 // Call this function when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     updateDisplay()
         .then(() => {
             setupSlider();
             setupPopup();
-            calculateAndVerifyTotals(data, 140, totalAmount); // Use a default exchange rate
+            setupShareButton();
+            calculateAndVerifyTotals(data, 140, totalAmount);
         })
         .catch(error => console.error("Error in updateDisplay:", error));
 });
