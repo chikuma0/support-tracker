@@ -1,4 +1,5 @@
 const totalAmount = 9.80 + 13.36; // Total amount in billion USD (allocations + commitments)
+console.log('Expected total amount (USD):', totalAmount);
 
 const data = [
     { date: '2022-02-27', amount: 59300000, purpose: '🤲 緊急人道支援', status: 'Allocation' },
@@ -21,7 +22,7 @@ const data = [
     { date: '2023-03-30', amount: 400000000, purpose: '🏗️ 緊急復興支援（フェーズ2）', status: 'Allocation' },
     { date: '2023-03-30', amount: 70000000, purpose: '⚡ 重要エネルギーインフラの復旧支援', status: 'Allocation' },
     { date: '2023-03-30', amount: 30000000, purpose: '🪖 NATOのCAP信託基金への拠出', status: 'Allocation' },
-    { date: '2023-04-21', amount: 471000000, purpose: '💰 世界銀行URTFへの拠出', status: 'Allocation' },
+    { date: '2023-04-21', amount: 471000000, purpose: '💰 世銀行URTFへの拠出', status: 'Allocation' },
     { date: '2023-06-20', amount: 5000000, purpose: '🌊 洪水災害対応支援', status: 'Allocation' },
     { date: '2023-06-23', amount: null, purpose: '🌊 洪水災害対応物資支援', status: 'Allocation' },
     { date: '2023-07-20', amount: 1500000000, purpose: '💰 世界銀行融資のADVANCE信託基金による信用補完', status: 'Allocation' },
@@ -132,7 +133,7 @@ function createFullList(exchangeRate) {
             amountText = `${formatCompactJapaneseNumber(amountJPY)}円 `;
         }
 
-        const statusEmoji = entry.status === 'Allocation' ? '✅' : '🔜';
+        const statusEmoji = entry.status === 'Allocation' ? '✅' : '';
         const statusText = entry.status === 'Allocation' ? '割当済' : 'コミット済';
         const statusClass = entry.status === 'Allocation' ? 'status-allocated' : 'status-committed';
 
@@ -267,6 +268,14 @@ function calculateAndVerifyTotals(data, exchangeRate, expectedTotalUSD) {
     console.log('Difference:', overallTotal - expectedTotalJPY);
     console.log('Difference Percentage:', ((overallTotal - expectedTotalJPY) / expectedTotalJPY) * 100 + '%');
 
+    // Add this detailed breakdown
+    data.forEach(entry => {
+        if (entry.amount !== null) {
+            const amountJPY = entry.currency === 'JPY' ? entry.amount : entry.amount * exchangeRate;
+            console.log(`${entry.date} - ${entry.purpose}: ${amountJPY.toFixed(2)} JPY (${entry.status})`);
+        }
+    });
+
     return { yearlyAllocations, yearlyCommitments, overallAllocations, overallCommitments, overallTotal };
 }
 
@@ -300,6 +309,7 @@ async function updateDisplay() {
             const slide = createSlide(entry, exchangeRate);
             slider.appendChild(slide);
         });
+        console.log('Slides created:', slider.children.length);
         setupSlider(); // Call this after creating slides
     } else {
         console.error('Slider container or slider element not found');
@@ -352,6 +362,7 @@ function setupSlider() {
                 slide.classList.remove('active');
             }
         });
+        console.log('Current slide:', index);
     }
 
     function nextSlide() {
